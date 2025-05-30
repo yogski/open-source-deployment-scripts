@@ -21,7 +21,7 @@ echo "=== Starting Lakasir POS Deployment Script ${SCRIPT_VERSION} ==="
 # 1. Repository installation step
 if [ ! -d "$APP_DIR" ]; then
   echo "Cloning repository..."
-  git clone "$REPO_URL" "$APP_DIR"
+  git clone "$REPO_URL" "~/$APP_DIR"
 else
   echo "Repository already exists. Skipping clone."
 fi
@@ -64,8 +64,8 @@ if ! command -v redis-server &> /dev/null; then
   echo "Installing Redis..."
   sudo apt update
   sudo apt install -y redis-server
-  sudo systemctl enable redis
-  sudo systemctl start redis
+  sudo systemctl enable redis-server
+  sudo systemctl start redis-server
 else
   echo "Redis is already installed."
 fi
