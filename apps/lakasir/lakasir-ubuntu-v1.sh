@@ -45,19 +45,21 @@ if ! mysql --version | grep -qE "Distrib 5\.7|Distrib 8\."; then
   sudo apt install -y mysql-server
   sudo systemctl enable mysql
   sudo systemctl start mysql
-else
-  echo "MySQL 5.7+ is already installed. Skipping MySQL installation..."
-fi
+  echo "Configuring MySQL..."
 
-echo "Configuring MySQL..."
-
-SQL=$(cat <<EOF
+  SQL=$(cat <<EOF
 CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\`;
 CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';
 GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'localhost';
 FLUSH PRIVILEGES;
 EOF
 )
+
+  sudo mysql -u root -e "$SQL"
+
+else
+  echo "MySQL 5.7+ is already installed. Skipping MySQL installation..."
+fi
 
 # 4. Install Redis if not installed
 if ! command -v redis-server &> /dev/null; then
@@ -70,8 +72,6 @@ else
   echo "Redis is already installed. Skipping Redis installation..."
 fi
 
-
-sudo mysql -u root -e "$SQL"
 
 # 5. Check if curl is installed
 if ! command -v curl &> /dev/null; then
