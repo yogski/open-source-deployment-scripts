@@ -10,7 +10,7 @@ set -e
 SCRIPT_VERSION="v1.0.0"
 
 REPO_URL="https://github.com/lakasir/lakasir.git" # Please support the original author.
-APP_DIR="lakasir-pos"
+APP_DIR="~/lakasir-pos"
 
 DB_USER=${1:-DEFAULT_USER}            # input for MySQL User with default value
 DB_PASS=${2:-DEFAULT_PASSWORD}        # input for MySQL password with default value
@@ -21,9 +21,9 @@ echo "=== Starting Lakasir POS Deployment Script ${SCRIPT_VERSION} ==="
 # 1. Repository installation step
 if [ ! -d "$APP_DIR" ]; then
   echo "Cloning repository..."
-  git clone "$REPO_URL" "~/$APP_DIR"
+  git clone "$REPO_URL" "$APP_DIR"
 else
-  echo "Repository already exists. Skipping clone."
+  echo "Repository already exists. Skipping clone..."
 fi
 
 cd "$APP_DIR"
@@ -35,7 +35,7 @@ if ! php -v | grep -q "8.1"; then
   sudo apt update
   sudo apt install -y php8.1 php8.1-cli php8.1-mbstring php8.1-xml php8.1-curl php8.1-mysql unzip
 else
-  echo "PHP 8.1 is already installed."
+  echo "PHP 8.1 is already installed. Skipping PHP installation..."
 fi
 
 # 3. MySQL Installation Step
@@ -46,7 +46,7 @@ if ! mysql --version | grep -qE "Distrib 5\.7|Distrib 8\."; then
   sudo systemctl enable mysql
   sudo systemctl start mysql
 else
-  echo "MySQL 5.7+ is already installed."
+  echo "MySQL 5.7+ is already installed. Skipping MySQL installation..."
 fi
 
 echo "Configuring MySQL..."
@@ -67,7 +67,7 @@ if ! command -v redis-server &> /dev/null; then
   sudo systemctl enable redis-server
   sudo systemctl start redis-server
 else
-  echo "Redis is already installed."
+  echo "Redis is already installed. Skipping Redis installation..."
 fi
 
 
@@ -79,7 +79,7 @@ if ! command -v composer &> /dev/null; then
   curl -sS https://getcomposer.org/installer | php
   sudo mv composer.phar /usr/local/bin/composer
 else
-  echo "Composer is already installed."
+  echo "Composer is already installed. Skipping Composer setup..."
 fi
 
 # 6. Install Node.js and NPM if not installed
@@ -88,7 +88,7 @@ if ! command -v npm &> /dev/null; then
   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
   sudo apt install -y nodejs
 else
-  echo "NPM is already installed."
+  echo "NPM is already installed. Skipping NPM installation..."
 fi
 
 # 7. Laravel setup
