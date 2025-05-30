@@ -73,7 +73,16 @@ fi
 
 sudo mysql -u root -e "$SQL"
 
-# 5. Setup Composer
+# 5. Check if curl is installed
+if ! command -v curl &> /dev/null; then
+  echo "Installing curl..."
+  sudo apt update
+  sudo apt install -y curl
+else
+  echo "curl is already installed. Continuing..."
+fi
+
+# 6. Setup Composer
 if ! command -v composer &> /dev/null; then
   echo "Installing Composer..."
   curl -sS https://getcomposer.org/installer | php
@@ -82,7 +91,7 @@ else
   echo "Composer is already installed. Skipping Composer setup..."
 fi
 
-# 6. Install Node.js and NPM if not installed
+# 7. Install Node.js and NPM if not installed
 if ! command -v npm &> /dev/null; then
   echo "Installing Node.js and NPM..."
   curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
@@ -91,7 +100,7 @@ else
   echo "NPM is already installed. Skipping NPM installation..."
 fi
 
-# 7. Laravel setup
+# 8. Laravel setup
 echo "Running Laravel setup..."
 
 composer install
