@@ -1,0 +1,119 @@
+#!/bin/bash
+
+# Lakasir POS deployment script
+# Supported App Version: 1.1.5
+# Supported OS: Ubuntu
+# Author: Yogi Saputro
+
+set -e
+
+SCRIPT_VERSION="v1.0.0"
+
+REPO_URL="https://github.com/lakasir/lakasir.git" # Please support the original author.
+APP_DIR="lakasir-pos"
+
+DB_USER=${1:-DEFAULT_USER}            # input for MySQL User with default value
+DB_PASS=${2:-DEFAULT_PASSWORD}        # input for MySQL password with default value
+DB_NAME=${3:-pos_db}                  # input for MySQL DB name with default value
+
+echo "=== Starting Lakasir POS Deployment Script ${SCRIPT_VERSION} ==="
+
+# 1. Repository installation step
+if [ ! -d "$APP_DIR" ]; then
+  echo "Cloning repository..."
+  git clone "$REPO_URL" "$APP_DIR"
+else
+  echo "Repository already exists. Skipping clone."
+fi
+
+cd "$APP_DIR"
+
+# 2. PHP Installation Step
+if ! php -v | grep -q "8.1"; then
+  echo "Installing PHP 8.1..."
+  sudo add-apt-repository ppa:ondrej/php -y
+  sudo apt update
+  sudo apt install -y php8.1 php8.1-cli php8.1-mbstring php8.1-xml php8.1-curl php8.1-mysql unzip
+else
+  echo "PHP 8.1 is already installed."
+fi
+
+# 3. MySQL Installation Step
+if ! mysql --version | grep -qE "Distrib 5\.7|Distrib 8\."; then
+  echo "Installing MySQL 8..."
+  sudo apt update
+  sudo apt install -y mysql-server
+  sudo systemctl enable mysql
+  sudo systemctl start mysql
+else
+  echo "MySQL 5.7+ is already installed."
+fi
+
+echo "Configuring MySQL..."
+
+SQL=$(cat <<EOF
+CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\`;
+CREATE USER IF NOT EXISTS '${DB_USER}'@'localhost' IDENTIFIED BY '${DB_PASS}';
+GRANT ALL PRIVILEGES ON \`${DB_NAME}\`.* TO '${DB_USER}'@'localhost';
+FLUSH PRIVILEGES;
+EOF
+)
+
+# 4. Install Redis if not installed
+if ! command -v redis-server &> /dev/null; then
+  echo "Installing Redis..."
+  sudo apt update
+  sudo apt install -y redis-server
+  sudo systemctl enable redis
+  sudo systemctl start redis
+else
+  echo "Redis is already installed."
+fi
+
+
+sudo mysql -u root -e "$SQL"
+
+# 5. Setup Composer
+if ! command -v composer &> /dev/null; then
+  echo "Installing Composer..."
+  curl -sS https://getcomposer.org/installer | php
+  sudo mv composer.phar /usr/local/bin/composer
+else
+  echo "Composer is already installed."
+fi
+
+# 6. Install Node.js and NPM if not installed
+if ! command -v npm &> /dev/null; then
+  echo "Installing Node.js and NPM..."
+  curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
+  sudo apt install -y nodejs
+else
+  echo "NPM is already installed."
+fi
+
+# 7. Laravel setup
+echo "Running Laravel setup..."
+
+composer install
+
+if [ ! -f ".env" ]; then
+  cp .env.example .env
+  echo ".env created from .env.example"
+fi
+
+echo "Updating .env credentials..."
+sed -i "s/^DB_DATABASE=.*/DB_DATABASE=${DB_NAME}/" .env
+sed -i "s/^DB_USERNAME=.*/DB_USERNAME=${DB_USER}/" .env
+sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=${DB_PASS}/" .env
+sed -i "s/^APP_ENV=.*/APP_ENV=production/" .env
+
+php artisan key:generate
+php artisan migrate --path=database/migrations/tenant --seed
+php artisan filament:assets
+php artisan livewire:publish --assets
+
+npm install
+
+php artisan app:create-user
+
+echo "=== POS Deployment Completed ==="
