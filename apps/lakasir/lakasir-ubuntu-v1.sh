@@ -10,7 +10,7 @@ set -e
 SCRIPT_VERSION="v1.0.0"
 
 REPO_URL="https://github.com/lakasir/lakasir.git" # Please support the original author.
-APP_DIR="$HOME/lakasir-pos"
+APP_DIR="lakasir-pos"
 APP_VERSION="v1.1.5"
 PHP_VERSION="8.2"
 
@@ -21,6 +21,8 @@ DB_NAME=${3:-pos_db}                  # input for MySQL DB name with default val
 echo "=== Starting Lakasir POS Deployment Script ${SCRIPT_VERSION} ==="
 
 # 1. Repository installation step
+cd $HOME
+
 if [ ! -d "$APP_DIR" ]; then
   echo "Cloning repository..."
   git clone --branch "$APP_VERSION" --depth 1 "$REPO_URL" "$APP_DIR"
@@ -34,10 +36,10 @@ cd "$APP_DIR"
 if ! php -v | grep -q "8.2"; then
   echo "Installing PHP 8.2..."
   sudo apt install -y software-properties-common
-  sudo add-apt-repository ppa:ondrej/php -y
+  sudo add-apt-repository ppa:ondrej/php ppa:ondrej/nginx -y
   sudo apt update
 
-  sudo apt install -y nginx php$PHP_VERSION php$PHP_VERSION-{fpm,cli,mbstring,bcmath,xml,zip,curl,common,mysql,intl}
+  sudo apt install -y nginx php$PHP_VERSION php$PHP_VERSION-{fpm,cli,mbstring,bcmath,xml,zip,curl,common,mysql,intl,gd}
 
   sudo update-alternatives --set php /usr/bin/php8.2
 
