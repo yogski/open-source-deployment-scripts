@@ -115,8 +115,6 @@ fi
 # 8. Laravel setup
 echo "Running Laravel setup..."
 
-composer install
-
 if [ ! -f ".env" ]; then
   cp .env.example .env
   echo ".env created from .env.example"
@@ -128,6 +126,8 @@ sed -i "s/^DB_USERNAME=.*/DB_USERNAME=${DB_USER}/" .env
 sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=${DB_PASS}/" .env
 sed -i "s/^APP_ENV=.*/APP_ENV=production/" .env
 sed -i "s/^APP_DEBUG=.*/APP_DEBUG=false/" .env
+
+composer install
 
 php artisan key:generate
 php artisan migrate --path=database/migrations/tenant --seed
