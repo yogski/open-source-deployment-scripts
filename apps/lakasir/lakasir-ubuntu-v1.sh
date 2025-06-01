@@ -11,7 +11,7 @@ SCRIPT_VERSION="v1.0.0"
 
 REPO_URL="https://github.com/lakasir/lakasir.git" # Please support the original author.
 APP_DIR="lakasir-pos"
-APP_VERSION="v1.1.5"
+APP_VERSION="1.1.5"
 PHP_VERSION="8.2"
 
 DB_USER=${1:-DEFAULT_USER}            # input for MySQL User with default value
