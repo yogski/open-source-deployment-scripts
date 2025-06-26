@@ -126,6 +126,7 @@ sed -i "s/^DB_USERNAME=.*/DB_USERNAME=${DB_USER}/" .env
 sed -i "s/^DB_PASSWORD=.*/DB_PASSWORD=${DB_PASS}/" .env
 sed -i "s/^APP_ENV=.*/APP_ENV=production/" .env
 sed -i "s/^APP_DEBUG=.*/APP_DEBUG=false/" .env
+sed -i "s/^APP_LOCAL=.*/APP_LOCAL=id/" .env
 
 composer install
 
@@ -135,7 +136,13 @@ php artisan filament:assets
 php artisan livewire:publish --assets
 
 npm install
+npm run build
 
-php artisan app:create-user
+if ! timeout 20s php artisan app:create-user; then
+  echo "app:create-user command failed or timed out"
+fi
 
 echo "=== POS Deployment Completed ==="
+
+echo "running in production"
+php artisan serve
